@@ -2,6 +2,7 @@
 var http = require('https');
 const TuyAPI = require('tuyapi');
 var express = require('express');
+const bodyParser = require('body-parser');
 const config = require('config');
 const storage = require('node-persist');
 
@@ -24,7 +25,10 @@ const device = new TuyAPI({
 });
 
 app.use(express.static('public'));
-app.use(express.urlencoded())
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
+
 app.set('view engine', 'pug');
 
 app.get('/', function (req, res) {
@@ -51,13 +55,10 @@ app.get('/', function (req, res) {
 });
 
 app.post('/charging', (req, res) => {
-	console.log(req.body.value == "true");
-
 	device.set({
 		dps: 1,
 		set: (req.body.value == "true")
 	}).then(() => {
-		console.log("done");
 		res.statusCode = 200;
 		res.send();
 	}).catch(() => {
@@ -96,7 +97,7 @@ function setChargingInterval() {
 	interval = setInterval(() => {
 		updateState().then((data) => {
 
-			console.log("Checking NIU", getSOC(data), "%")
+			console.log("Checking SOC", getSOC(data), "%")
 			if (data.isCharging) {
 				if (getSOC(data) >= limit) {
 					console.log("Stopping charge")
@@ -139,9 +140,7 @@ async function setLimit(newLimit) {
 function setPlug(turn_on) {
 	device.set({
 		set: turn_on
-	}).then((data) => {
-		console.log(data)
-	})
+	});
 }
 
 function connectPlug() {
@@ -156,23 +155,15 @@ function connectPlug() {
 
 	// Add event listeners
 	device.on('connected', () => {
-		device.get({
-			schema: true
-		}).then((dat) => {
-			console.log(dat)
-			/*4: mA
-			5: W
-			6: V*/
-		})
-		console.log('Connected to device!');
+		console.log('Connected to plug!');
 	});
 
 	device.on('disconnected', () => {
-		console.log('Disconnected from device.');
+		console.log('Disconnected from plug.');
 	});
 
 	device.on('error', error => {
-		console.log('Error!', error);
+		console.log('Elug error!', error);
 	});
 
 }
@@ -204,5 +195,5 @@ function updateState() {
 }
 
 app.listen(3000, function () {
-	console.log('Example app listening on port 3000!');
+	console.log('NIU Charge listening on port 3000!');
 });

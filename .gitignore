@@ -88,4 +88,4 @@ typings/
 .dynamodb/
 
 .node-persist/
-.config/
+.config/default.json
