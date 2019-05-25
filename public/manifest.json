@@ -1,0 +1,14 @@
+{
+	"short_name": "Charge",
+	"name": "NIU Charge",
+	"icons": [{
+		"src": "/app_icon.png",
+		"type": "image/png",
+		"sizes": "192x192"
+	}],
+	"start_url": "/",
+	"background_color": "#343a40",
+	"display": "standalone",
+	"scope": "/",
+	"theme_color": "#343a40"
+}
