@@ -2,6 +2,8 @@
 ## Charging manager for [NIU](https://www.niu.com) electric mopeds
 This project monitors the charging process of a NIU scooter and shuts down the charger using a tuya smart plug when the SOC reaches a threshold.
 
+Only dual battery models are supported right now.
+
 # Setup
 ## NIU API
 In order to check the SOC of the battery, the serial number of the moped and a token are required.
