@@ -1,0 +1,35 @@
+{
+  "name": "niu-charge",
+  "version": "1.0.0",
+  "description": "Charging manager for NIU electric mopeds",
+  "main": "niucharge.js",
+  "dependencies": {
+    "config": "^3.1.0",
+    "express": "^4.17.0",
+    "node-persist": "^3.0.4",
+    "pug": "^2.0.3",
+    "tuyapi": "^4.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bonnee/niu-charge.git"
+  },
+  "keywords": [
+    "niu",
+    "electric",
+    "moped",
+    "battery",
+    "charging",
+    "EV"
+  ],
+  "author": "bonnee",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/Bonnee/niu-charge/issues"
+  },
+  "homepage": "https://github.com/Bonnee/niu-charge#readme"
+}

@@ -1,0 +1,133 @@
+doctype html
+html(lang='en')
+  head
+    data
+    // Required meta tags
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
+    meta(name="theme-color" content="#343a40")
+
+
+    // Bootstrap CSS
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T', crossorigin='anonymous')
+    link(rel='stylesheet' href='/style.css')
+    link(rel='icon', href='/favicon.ico')
+
+    title NIU Charging
+  body.bg-dark.text-light.mt-2
+    .container.pb-5.mb-4
+      h1.display-4 
+        if !data.isCharging
+          | Not Charging
+        else
+          | Charging
+        h3(class={'invisible':!data.isCharging})
+          strong=data.leftTime
+          span.text-muted  hour remaining
+
+      .d-flex.flex-column.justify-content-center
+        .text-center.position-relative
+          img.img-fluid.top-image(src='/car_thumbnail_ngt.png')
+          img.img-fluid.top-image.position-absolute(class={"d-none":!data.isCharging} style="top:0;left:0;" src='/examine_car_ngt_light.png')
+          
+          
+        div.d-flex.justify-content-center
+          h5.mx-2.my-0
+            small A 
+            strong=data.batteries.compartmentA.batteryCharging
+            small  %
+          h5.mx-2.my-0
+            small B 
+            strong=data.batteries.compartmentB.batteryCharging
+            small  %
+        
+        .m-3.text-center
+          .position-relative.shadow-lg.mb-2
+            .overlay-bar
+              .progress.bg-secondary
+                .progress-bar.rounded(role='progressbar', style='width: '+soc+'%', aria-valuenow=soc, aria-valuemin='0', aria-valuemax='100')
+            .w-100.h-100.position-absolute(style="top:0;")
+              .d-flex.align-items-center.h-100
+                .d-flex.justify-content-center.w-100
+                    h2.my-0.mx-2
+                      strong=soc
+                      small  %
+                    h2.my-0.mx-2
+                      strong=data.estimatedMileage
+                      small  Km
+            .overlay-range.p-0
+              input#chgLimit.form-control-range(type='range', min='50', max='100', value=chargeLimit)
+          
+          .display-3
+            span#chgLimitText
+            small %
+          h4.mb-4 Charge Limit
+
+          if data.isCharging
+            .d-flex.justify-content-around
+              h2
+                strong=Math.round(plugData.power*data.estimatedMileage/4200)
+                small  Km/h
+              h2
+                strong=plugData.power
+                small  W
+              h2
+                strong=plugData.current
+                small  A
+              
+    if plugData.state
+      button#btnStop.btn.btn-lg.btn-block.btn-danger.fixed-bottom.py-4 STOP
+    else
+      button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
+
+
+    // Optional JavaScript
+    // jQuery first, then Popper.js, then Bootstrap JS
+    script(src='https://code.jquery.com/jquery-3.3.1.min.js', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js', integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1', crossorigin='anonymous')
+    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js', integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM', crossorigin='anonymous')
+
+    script.
+      var slider = document.getElementById("chgLimit");
+      var output = document.getElementById("chgLimitText");
+      output.innerHTML = slider.value;
+
+      slider.oninput = function() {
+        output.innerHTML = this.value;
+
+        $.ajax({
+          type: 'POST',
+          url: '/setlimit',
+          data:{
+            value: this.value
+            }
+        }).done(function(){
+          console.log('Limit updated')
+        })
+      }
+
+      $('#btnStop').click(function(){
+        $.ajax({
+          type: 'POST',
+          url: '/charging',
+          data:{
+            value: false
+            }
+        }).done(function(){
+          console.log('Charging stopped')
+          location.reload();
+        })
+      });
+
+      $('#btnStart').click(function(){
+        $.ajax({
+          type: 'POST',
+          url: '/charging',
+          data:{
+            value: true
+            }
+        }).done(function(){
+          console.log('Charging started')
+          location.reload();
+        })
+      });
