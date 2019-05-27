@@ -5,8 +5,8 @@ This project monitors the charging process of a NIU scooter and shuts down the c
 Only dual battery models are supported right now.
 
 # Setup
-## NIU API
-In order to check the SOC of the battery, the serial number of the moped and a token are required.
+## NIU API (See [niu-app-api](https://github.com/Bonnee/niu-app-api) for further details)
+In order to check the SoC of the battery, the serial number of the moped and a token are required.
 The easiest way to obtain the token is by capturing the packets from the NIU app (using Wireshark or some random packet capture app) and extracting the `token` field in the HTTP header.
 
 ## Tuya Protocol
