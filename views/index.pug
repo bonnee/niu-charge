@@ -18,6 +18,11 @@ html(lang='en')
     title NIU Charging
   body.bg-dark.text-light.mt-2
     .container.pb-5.mb-4
+      if plugData.state == -1
+        .alert.alert-danger.alert-dismissible.fade.show.mt-3(role='alert')
+          strong Error
+          | : connection to plug failed.
+          button.close(data-dismiss="alert", aria-label="Close") &times;
       h1.display-4 
         if !data.isCharging
           | Not Charging
@@ -77,7 +82,7 @@ html(lang='en')
                 strong=plugData.current
                 small  A
 
-    if plugData.state!=-1      
+    if plugData.state != -1      
       if plugData.state
         button#btnStop.btn.btn-lg.btn-block.btn-danger.fixed-bottom.py-4 STOP
       else

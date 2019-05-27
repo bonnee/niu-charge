@@ -54,6 +54,8 @@ app.get('/', function (req, res) {
 			}
 		}
 
+		console.log(plugData);
+
 		res.render('index', {
 			data: data[0],
 			soc: getSOC(data[0]),
@@ -166,7 +168,7 @@ function connectPlug() {
 		// Connect to device
 		device.connect();
 	}).catch((e) => {
-		console.error("Error finding plug, retrying", e);
+		console.error("Error finding plug, retrying");
 		connectPlug();
 	});
 }
