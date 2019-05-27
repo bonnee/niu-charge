@@ -65,7 +65,7 @@ html(lang='en')
             small %
           h4.mb-4 Charge Limit
 
-          if data.isCharging
+          if data.isCharging && plugData.state!=-1
             .d-flex.justify-content-around
               h2
                 strong=Math.round(plugData.power*data.estimatedMileage/4200)
@@ -76,11 +76,12 @@ html(lang='en')
               h2
                 strong=plugData.current
                 small  A
-              
-    if plugData.state
-      button#btnStop.btn.btn-lg.btn-block.btn-danger.fixed-bottom.py-4 STOP
-    else
-      button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
+
+    if plugData.state!=-1      
+      if plugData.state
+        button#btnStop.btn.btn-lg.btn-block.btn-danger.fixed-bottom.py-4 STOP
+      else
+        button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
 
 
     // Optional JavaScript
