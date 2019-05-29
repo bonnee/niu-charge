@@ -137,10 +137,7 @@ function setChargingInterval() {
 function getSOC(data) {
 	let battery = [data.batteries.compartmentA.batteryCharging, data.batteries.compartmentB.batteryCharging]
 
-	if (limit == 100) {
-		return Math.min(battery[0], battery[1]);
-	}
-	return Math.round((battery[0] + battery[1]) / 2)
+	return (battery[0] + battery[1]) / 2
 }
 
 async function getLimit() {
