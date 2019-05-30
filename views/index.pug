@@ -17,7 +17,7 @@ html(lang='en')
 
 
     title NIU Charging
-  body.bg-dark.text-light.d-flex.flex-column
+  body.bg-dark.text-light.d-flex.flex-column.pt-2
     main.container.flex-fill
       if plugData.state == -1
         .alert.alert-danger.alert-dismissible.fade.show.mt-3(role='alert')
@@ -88,9 +88,9 @@ html(lang='en')
     if plugData.state != -1
       footer.fixed-bottom
         if plugData.state
-          button#btnStop.btn.btn-lg.btn-block.btn-danger.py-4 STOP
+          button#btnStop.btn.btn-lg.btn-block.btn-danger.rounded-0.py-4 STOP
         else
-          button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
+          button#btnStart.btn.btn-lg.btn-block.btn-success.rounded-0.py-4 START
 
 
     // Optional JavaScript
