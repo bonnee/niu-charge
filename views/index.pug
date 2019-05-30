@@ -33,10 +33,10 @@ html(lang='en')
           strong=data.leftTime
           span.text-muted  hour remaining
 
-      .d-flex.flex-column.justify-content-center
-        .text-center.position-relative()
-          img.img-fluid.top-image(src='/car_thumbnail_ngt.png')
-          img.img-fluid.top-image.position-absolute(class={"d-none":!data.isCharging} style="top:0;left:0;" src='/examine_car_ngt_light.png')
+      .d-flex.flex-column.justify-content-center.text-center
+        .position-relative.top-image
+          img.img-fluid(src='/car_thumbnail_ngt.png')
+          img.img-fluid.position-absolute(class={"d-none": !data.isCharging} src='/examine_car_ngt_light.png')
           
           
         div.d-flex.justify-content-center
