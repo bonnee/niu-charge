@@ -17,24 +17,24 @@ html(lang='en')
 
 
     title NIU Charging
-  body.bg-dark.text-light.mt-2
-    .container.pb-5.mb-4
+  body.bg-dark.text-light.d-flex.flex-column
+    main.container.flex-fill
       if plugData.state == -1
         .alert.alert-danger.alert-dismissible.fade.show.mt-3(role='alert')
           strong Error
           | : connection to plug failed.
           button.close(data-dismiss="alert", aria-label="Close") &times;
-      h1.display-4 
+      h1.display-4
         if !data.isCharging
           | Not Charging
         else
           | Charging
-        h3(class={'invisible':!data.isCharging})
+        h3.mb-0(class={'invisible':!data.isCharging})
           strong=data.leftTime
           span.text-muted  hour remaining
 
       .d-flex.flex-column.justify-content-center
-        .text-center.position-relative
+        .text-center.position-relative()
           img.img-fluid.top-image(src='/car_thumbnail_ngt.png')
           img.img-fluid.top-image.position-absolute(class={"d-none":!data.isCharging} style="top:0;left:0;" src='/examine_car_ngt_light.png')
           
@@ -69,7 +69,7 @@ html(lang='en')
           .display-3
             span#chgLimitText
             small %
-          h4.mb-4 Charge Limit
+          h4 Charge Limit
 
           if data.isCharging && plugData.state!=-1
             .d-flex.justify-content-around
@@ -83,11 +83,14 @@ html(lang='en')
                 strong=plugData.current
                 small  A
 
-    if plugData.state != -1      
-      if plugData.state
-        button#btnStop.btn.btn-lg.btn-block.btn-danger.fixed-bottom.py-4 STOP
-      else
-        button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
+      if plugData.state != -1
+        div(style="margin-bottom:4.25rem;")
+    if plugData.state != -1
+      footer.fixed-bottom
+        if plugData.state
+          button#btnStop.btn.btn-lg.btn-block.btn-danger.py-4 STOP
+        else
+          button#btnStart.btn.btn-lg.btn-block.btn-success.fixed-bottom.py-4 START
 
 
     // Optional JavaScript

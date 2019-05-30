@@ -79,6 +79,13 @@ input[type=range]::-ms-thumb {
 	height: 100%;
 }
 
+.top-image {
+	max-height: 50vh;
+	max-width: 100%;
+	width: auto;
+	height: auto;
+}
+
 .top-image.position-absolute {
 	animation: blink 1.5s linear infinite;
 }
