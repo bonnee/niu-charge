@@ -30,7 +30,7 @@ html(lang='en')
         else
           | Charging
         h3.mb-0(class={'invisible':!data.isCharging})
-          strong=data.leftTime
+          strong=Math.max(0,(data.leftTime*(chargeLimit-soc)/100)).toFixed(1)
           span.text-muted  hour remaining
 
       .d-flex.flex-column.justify-content-center.text-center
