@@ -74,7 +74,7 @@ html(lang='en')
           if data.isCharging && plugData.state!=-1
             .d-flex.justify-content-around
               h2
-                strong=Math.round(plugData.power*data.estimatedMileage/4200)
+                strong=Math.round(plugData.power*((data.estimatedMileage*100)/soc)/4200)
                 small  Km/h
               h2
                 strong=plugData.power
