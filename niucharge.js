@@ -1,27 +1,54 @@
 // We need this to build our post string
-var http = require('https');
+var https = require('https');
 const TuyAPI = require('tuyapi');
-var express = require('express');
 const bodyParser = require('body-parser');
 const config = require('config');
 const storage = require('node-persist');
+const express = require('express');
+
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 const scooter = config.get('scooter');
 const plug = config.get('plug');
 
+var data = {
+	limit: 90,
+	plug: {
+		state: -1,
+		current: -1,
+		power: -1,
+		volt: -1,
+	}
+};
+
 storage.init();
 
-var limit = 90;
-
-getLimit().then(l => {
-	limit = l;
-})
-
-var app = express();
+getLimit().then(lim => {
+	data.limit = lim;
+});
 
 const device = new TuyAPI({
 	id: plug.id,
 	key: plug.key
+});
+
+io.on('connection', function (socket) {
+	socket.emit('data', data);
+
+	socket.on('disconnect', function () {});
+
+	socket.on('limit', async (msg) => {
+		await setLimit(msg);
+		io.emit("limit", msg);
+	});
+
+	socket.on('plug', async msg => {
+		await setPlug(msg);
+
+		io.emit('plug', plug);
+	});
 });
 
 app.use(express.static('public'));
@@ -32,45 +59,15 @@ app.use(bodyParser.urlencoded({
 app.set('view engine', 'pug');
 
 app.get('/', function (req, res) {
-	handlePromises().then(data => {
-		if (data[0] instanceof Error) {
-			res.statusCode(500).send();
-			return;
-		}
-
-		let plugData = {
-			state: -1,
-			current: -1,
-			power: -1,
-			volt: -1,
-		};
-
-		if (!(data[1] instanceof Error)) {
-			plugData = {
-				state: data[1].dps['1'],
-				current: (data[1].dps['4'] / 1000).toFixed(2),
-				power: Math.round(data[1].dps['5'] / 10),
-				volt: Math.round(data[1].dps['6'] / 10)
-			}
-		}
-
-		console.log(plugData);
-
-		res.render('index', {
-			data: data[0],
-			soc: getSOC(data[0]),
-			plugData,
-			chargeLimit: limit
-		});
-	});
+	res.render('index');
 });
 
 async function handlePromises() {
-	let promises = [updateState(), device.get({
-		schema: true
-	})];
+	let promises = [updateScooter(), getPlug()];
 
-	return await Promise.all(promises.map(p => p.catch(e => e)));
+	await Promise.all(promises.map(p => p.catch(e => e)));
+
+	io.emit('data', data);
 }
 
 app.post('/charging', (req, res) => {
@@ -94,48 +91,55 @@ app.post('/setlimit', (req, res) => {
 });
 
 connectPlug();
-setChargingInterval();
 
-var interval;
+var interval = {
+	state: 0,
+	id: 0
+};
+
+setChargingInterval();
 
 // Update every 5 minutes until the charge begins
 function setIdleInterval() {
-	interval = setInterval(() => {
-		updateState().then((data) => {
-			if (data.isCharging) {
-				console.log("NIU is charging, decreasing interval");
+	console.log('Setting IDLE interval');
 
-				clearInterval(interval);
-				setChargingInterval();
-			}
-		});
-	}, 300000);
+	clearInterval(interval.id);
+	interval.state = 0;
+	interval.id = setInterval(async () => {
+		await updateScooter();
+
+		if (data.scooter.isCharging) {
+			console.log("NIU is charging, decreasing interval");
+
+			setChargingInterval();
+		}
+
+	}, 300000); //30min
 };
 
 function setChargingInterval() {
-	interval = setInterval(() => {
-		updateState().then((data) => {
+	console.log('Setting CHARGING interval');
 
-			console.log("Checking SOC", getSOC(data), "%")
-			if (data.isCharging) {
-				if (getSOC(data) >= limit) {
-					console.log("Stopping charge")
-					setPlug(false);
+	clearInterval(interval.id);
+	interval.state = 1;
+	interval.id = setInterval(async () => {
+		await updateScooter();
 
-					// Going back to 5min interval
-					clearInterval(interval);
-					setIdleInterval();
-				}
-			} else {
-				clearInterval(interval);
-				setIdleInterval();
+		console.log("Checking SOC", data.scooter.soc, "%")
+		if (data.scooter.isCharging || data.plug.state) {
+			if (data.scooter.soc > data.limit) {
+				console.log("Stopping charge")
+				setPlug(false);
 			}
-		});
-	}, 60000);
+		} else {
+			setIdleInterval();
+		}
+
+	}, 30000); //30sec
 };
 
-function getSOC(data) {
-	let battery = [data.batteries.compartmentA.batteryCharging, data.batteries.compartmentB.batteryCharging]
+function getSOC(scooter) {
+	let battery = [scooter.batteries.compartmentA.batteryCharging, scooter.batteries.compartmentB.batteryCharging]
 
 	return (battery[0] + battery[1]) / 2
 }
@@ -147,10 +151,35 @@ async function getLimit() {
 async function setLimit(newLimit) {
 	await storage.set('chargeLimit', parseInt(newLimit));
 
-	getLimit().then((l) => {
-		limit = l;
-	});
+	data.limit = await getLimit();
+}
 
+async function getPlug() {
+	let plug = await device.get({
+		schema: true
+	});
+}
+
+function parsePlug(plug) {
+	if (typeof plug.dps !== 'undefined') {
+		plug = plug.dps;
+
+		if (typeof plug['1'] != "undefined")
+			data.plug.state = plug['1']
+
+		if (typeof plug['4'] != "undefined")
+			data.plug.current = (plug['4'] / 1000).toFixed(2)
+
+		if (typeof plug['5'] != "undefined")
+			data.plug.power = Math.round(plug['5'] / 10)
+
+		if (typeof plug['6'] != "undefined")
+			data.plug.volt = Math.round(plug['6'] / 10)
+
+		if (!interval.state && data.plug.state) {
+			setChargingInterval();
+		}
+	}
 }
 
 async function setPlug(turn_on) {
@@ -184,7 +213,13 @@ device.on('error', error => {
 	console.log('Elug error!', error);
 });
 
-function updateState() {
+device.on('data', plug => {
+	parsePlug(plug);
+
+	io.emit('plug', data.plug);
+});
+
+function updateScooter() {
 	return new Promise((resolve, reject) => {
 		var post_options = {
 			host: 'app-api-fk.niu.com',
@@ -197,19 +232,22 @@ function updateState() {
 		};
 
 		// Set up the request
-		var post_req = http.request(post_options, function (res) {
+		var post_req = https.request(post_options, function (res) {
 			res.setEncoding('utf8');
 			res.on('data', function (chunk) {
+				data.scooter = JSON.parse(chunk).data
+				data.scooter.soc = getSOC(data.scooter);
 
-				resolve(JSON.parse(chunk).data);
-
+				io.emit('data', data);
+				resolve();
 			});
 		});
 
 		post_req.end();
 	})
 }
+handlePromises();
 
-app.listen(process.env.PORT || 3000, function () {
+http.listen(process.env.PORT || 3000, function () {
 	console.log('NIU Charge started!');
 });

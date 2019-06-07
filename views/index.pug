@@ -1,7 +1,6 @@
 doctype html
 html(lang='en')
   head
-    - soc = Math.round(soc)
     // Required meta tags
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
@@ -15,82 +14,76 @@ html(lang='en')
 
     link(rel='stylesheet' href='/style.css')
 
+    script(src="/socket.io/socket.io.js")
+    script.
+      var socket=io();
+
 
     title NIU Charging
   body.bg-dark.text-light.d-flex.flex-column.pt-2
     main.container.flex-fill
-      if plugData.state == -1
-        .alert.alert-danger.alert-dismissible.fade.show.mt-3(role='alert')
-          strong Error
-          | : connection to plug failed.
-          button.close(data-dismiss="alert", aria-label="Close") &times;
-      h1.display-4
-        if !data.isCharging
-          | Not Charging
-        else
-          | Charging
-        h3.mb-0(class={'invisible':!data.isCharging})
-          strong=Math.max(0,(data.leftTime*(chargeLimit-soc)/100)).toFixed(1)
-          span.text-muted  hour remaining
+      #plugError.alert.alert-danger.alert-dismissible.show.fade.mt-3.d-none(role='alert')
+        strong Error
+        | : connection to plug failed.
+        button.close(data-dismiss="alert", aria-label="Close") &times;
+      h1#chargingStatus.display-4 Loading
+      h3#timeText.mb-0
+        strong#timeValue -.-
+        span.text-muted  hour remaining
 
       .d-flex.flex-column.justify-content-center.text-center
         .position-relative.top-image
           img.img-fluid(src='/car_thumbnail_ngt.png')
-          img.img-fluid.position-absolute(class={"d-none": !data.isCharging} src='/examine_car_ngt_light.png')
-          
+          img#chargingImage.img-fluid.position-absolute.d-none(src='/examine_car_ngt_light.png')
           
         div.d-flex.justify-content-center
           h5.mx-2.my-0
             small A 
-            strong=data.batteries.compartmentA.batteryCharging
+            strong#socA --
             small  %
           h5.mx-2.my-0
             small B 
-            strong=data.batteries.compartmentB.batteryCharging
+            strong#socB --
             small  %
         
         .mb-3.mt-1.text-center
           .position-relative.shadow-lg.mb-2
             .overlay-bar
               .progress.bg-secondary
-                .progress-bar.rounded(role='progressbar', style='width: '+soc+'%', aria-valuenow=soc, aria-valuemin='0', aria-valuemax='100')
+                .progress-bar.rounded#socProgress(role='progressbar', style='width: 0%', aria-valuenow=0, aria-valuemin='0', aria-valuemax='100')
             .w-100.h-100.position-absolute(style="top:0;")
               .d-flex.align-items-center.h-100
                 .d-flex.justify-content-center.w-100
                     h2.my-0.mx-2
-                      strong=soc
+                      strong#socValue --
                       small  %
                     h2.my-0.mx-2
-                      strong=data.estimatedMileage
+                      strong#mileageValue --
                       small  Km
             .overlay-range.p-0
-              input#chgLimit.form-control-range(type='range', min='50', max='100', value=chargeLimit)
+              input#limitSlider.form-control-range(type='range', min='50', max='100', value='0')
           
           .display-3
-            span#chgLimitText
+            span#limitValue --
             small %
           h4 Charge Limit
 
-          if data.isCharging && plugData.state!=-1
+          //if data.isCharging && plugData.state!=-1
+          #plugStats
             .d-flex.justify-content-around
               h2
-                strong=Math.round(plugData.power*((data.estimatedMileage*100)/soc)/4200)
+                strong#plugKmh --
                 small  Km/h
               h2
-                strong=plugData.power
+                strong#plugPower --
                 small  W
               h2
-                strong=plugData.current
+                strong#plugCurrent --
                 small  A
 
-      if plugData.state != -1
-        div(style="margin-bottom:4.25rem;")
-    if plugData.state != -1
-      footer.fixed-bottom
-        if plugData.state
-          button#btnStop.btn.btn-lg.btn-block.btn-danger.rounded-0.py-4 STOP
-        else
-          button#btnStart.btn.btn-lg.btn-block.btn-success.rounded-0.py-4 START
+    div(style="margin-bottom:4.25rem;")
+    footer.fixed-bottom
+      button#plugButton.btn.btn-lg.btn-block.btn-secondary.rounded-0.py-4 NO DATA
 
 
     // Optional JavaScript
@@ -100,46 +93,107 @@ html(lang='en')
     script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js', integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM', crossorigin='anonymous')
 
     script.
-      var slider = document.getElementById("chgLimit");
-      var output = document.getElementById("chgLimitText");
-      output.innerHTML = slider.value;
+      var data={};
 
-      slider.oninput = function() {
-        output.innerHTML = this.value;
-
-        $.ajax({
-          type: 'POST',
-          url: '/setlimit',
-          data:{
-            value: this.value
-            }
-        }).done(function(){
-          console.log('Limit updated')
-        })
-      }
-
-      $('#btnStop').click(function(){
-        $.ajax({
-          type: 'POST',
-          url: '/charging',
-          data:{
-            value: false
-            }
-        }).done(function(){
-          console.log('Charging stopped')
-          location.reload();
-        })
+      $('#limitSlider').on('input', function() {
+        socket.emit("limit", this.value);
       });
 
-      $('#btnStart').click(function(){
-        $.ajax({
-          type: 'POST',
-          url: '/charging',
-          data:{
-            value: true
-            }
-        }).done(function(){
-          console.log('Charging started')
-          location.reload();
-        })
+      socket.on('limit',function(msg){
+        data.limit = msg;
+        setLimit();
+      });
+
+      socket.on('data',function(msg){
+        if(msg.scooter instanceof Object){
+          data = msg;
+          data.scooter.soc=Math.floor(data.scooter.soc);
+
+          setSOC();
+          setLimit();
+          $('#mileageValue').html(data.scooter.estimatedMileage);
+
+          if(data.scooter.isCharging){
+            $('#chargingStatus').html('Charging');
+            $('#chargingImage').removeClass('d-none');
+          }
+          else
+          {
+            $('#chargingStatus').html('Not Charging');
+            $('#chargingImage').addClass('d-none');
+          }
+
+          setPlug();
+        }
+      });
+
+      socket.on('plug',function(msg) {
+        data.plug = msg;
+        setPlug();
+      });
+
+      function setSOC(){
+        $('#socProgress').css('width', data.scooter.soc + '%');
+        $('#socValue').html(data.scooter.soc);
+        $('#socA').html(data.scooter.batteries.compartmentA.batteryCharging);
+        $('#socB').html(data.scooter.batteries.compartmentB.batteryCharging);
+
+        setTime();
+      }
+
+      function setTime(){
+        if(data.scooter.isCharging){
+          $('#timeValue').html(Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc))).toFixed(1));
+          $('#timeText').removeClass('invisible');
+        }
+        else{
+          $('#timeText').addClass('invisible');
+        }
+      }
+
+      function setLimit(){
+        $('#limitValue').html(data.limit);
+        $('#limitSlider').val(data.limit);
+
+        setTime();
+      }
+
+      function setPlug(){
+        switch(data.plug.state){
+          case true:
+            $('#plugError').addClass('d-none');
+            $('#plugButton').removeClass('btn-success');
+            $('#plugButton').addClass('btn-danger');
+            $('#plugButton').html('STOP');
+
+            $('#plugStats').removeClass('d-none');
+
+            $('#plugKmh').html(Math.round(data.plug.power*((data.scooter.estimatedMileage*100)/data.scooter.soc)/4200));
+            $('#plugPower').html(data.plug.power);
+            $('#plugCurrent').html(data.plug.current);
+
+            break;
+          case false:
+            $('#plugError').addClass('d-none');
+            $('#plugButton').removeClass('btn-danger');
+            $('#plugButton').addClass('btn-success');
+            $('#plugButton').html('START');
+
+            $('#plugStats').addClass('d-none');
+            break;
+
+          case -1:
+            $('#plugError').removeClass('d-none');
+            $('#plugButton').removeClass('btn-danger');
+            $('#plugButton').removeClass('btn-success');
+            $('#plugButton').addClass('btn-secondary');
+            $('#plugButton').html('NO DATA');
+
+            $('#plugStats').addClass('d-none');
+            break;
+        }
+      }
+
+      $('#plugButton').click(function() {
+        socket.emit('plug',$('#plugButton').hasClass('btn-success'))
       });
