@@ -35,7 +35,9 @@ const device = new TuyAPI({
 });
 
 io.on('connection', function (socket) {
-	socket.emit('data', data);
+	socket.on('ready', () => {
+		socket.emit('data', data);
+	});
 
 	socket.on('disconnect', function () {});
 

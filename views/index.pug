@@ -95,8 +95,14 @@ html(lang='en')
     script.
       var data={};
 
+      socket.emit('ready');
+
       $('#limitSlider').on('input', function() {
         socket.emit("limit", this.value);
+      });
+
+      socket.on('reconnect', function () {
+        socket.emit('ready');
       });
 
       socket.on('limit',function(msg){
