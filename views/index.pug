@@ -31,8 +31,8 @@ html(lang='en')
         strong#timeHours --
         small#hoursText.text-muted
         strong#timeMinutes --
-        small#hoursText.text-muted  min
-        small.text-muted  remaining
+        small#minutesText.text-muted
+        small.text-muted remaining
 
       .d-flex.flex-column.justify-content-center.text-center
         .position-relative.top-image
@@ -151,36 +151,53 @@ html(lang='en')
       }
 
       function getTime(){
-        return Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc)));
+        let time = Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc)));
+
+        let hours=getHours(time);
+        let minutes=getMinutes(time);
+
+        if(minutes==60){
+          minutes=0;
+          hours.value++;
+        }
+
+        return {hours,minutes};
       }
 
-      function getHours()
+      function getHours(time)
       {
-        let time = Math.floor(getTime());
+        let hrs = Math.floor(time);
 
         let txt='hour'
-        if(time > 1)
+        if(hrs > 1)
           txt='hrs'
 
-        return {value: time, text: txt}
+        return {value: hrs, text: txt}
       }
 
-      function getMinutes()
+      function getMinutes(time)
       {
-        return Math.round((getTime()%1)*60);
+        return Math.round(((time % 1) * 60) / 5) * 5;
       }
 
       function setTime(){
         if(data.scooter.isCharging){
-          let hours=getHours();
-          if(hours.value == 0){
-            hours.value='';
-            hours.text='';
+          let time=getTime();
+          if(time.hours.value == 0){
+            time.hours.value='';
+            time.hours.text='';
           }
-          $('#timeHours').html(hours.value+' ');
-          $('#hoursText').html(hours.text+' ');
+          $('#timeHours').html(time.hours.value+' ');
+          $('#hoursText').html(time.hours.text+' ');
 
-          $('#timeMinutes').html(getMinutes());
+          if(time.minutes==0){
+            $('#minutesText').html('');
+          }
+          else{
+            $('#minutesText').html(' min ');
+          }
+          $('#timeMinutes').html(time.minutes==0?'':time.minutes);
+            
         }
         else{
           $('#timeText').addClass('invisible');
