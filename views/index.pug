@@ -156,9 +156,11 @@ html(lang='en')
         let hours=getHours(time);
         let minutes=getMinutes(time);
 
+        console.log(hours,minutes);
+
         if(minutes==60){
           minutes=0;
-          hours.value++;
+          hours++;
         }
 
         return {hours,minutes};
@@ -166,13 +168,7 @@ html(lang='en')
 
       function getHours(time)
       {
-        let hrs = Math.floor(time);
-
-        let txt='hour'
-        if(hrs > 1)
-          txt='hrs'
-
-        return {value: hrs, text: txt}
+        return Math.floor(time);
       }
 
       function getMinutes(time)
@@ -185,15 +181,22 @@ html(lang='en')
           $('#timeText').removeClass('invisible');
           
           let time=getTime();
+          let hourTxt='hour';
 
-          if(time.hours.value == 0){
-            time.hours.value='';
-            time.hours.text='';
+          if (time.hours > 1)
+          {
+            hourTxt='hrs';
           }
-          $('#timeHours').html(time.hours.value+' ');
-          $('#hoursText').html(time.hours.text+' ');
 
-          if(time.minutes == 0 && ! time.hours.value == 0){
+          if(time.hours == 0){
+            time.hours='';
+            hourTxt='';
+          }
+
+          $('#timeHours').html(time.hours+' ');
+          $('#hoursText').html(hourTxt+' ');
+
+          if(time.minutes == 0 && ! time.hours == 0){
             $('#minutesText').html('');
             $('#timeMinutes').html('');
           }
