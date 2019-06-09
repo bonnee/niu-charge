@@ -138,6 +138,6 @@ app.post('/setlimit', (req, res) => {
 	res.send();
 });
 
-http.listen(process.env.PORT || 3000, function () {
+http.listen(process.env.PORT || 3000, () => {
 	console.log('NIU Charge started!');
 });

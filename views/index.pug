@@ -27,9 +27,12 @@ html(lang='en')
         | : connection to plug failed.
         button.close(data-dismiss="alert", aria-label="Close") &times;
       h1#chargingStatus.display-4 Loading
-      h3#timeText.mb-0
-        strong#timeValue -.-
-        span.text-muted  hour remaining
+      h2#timeText.mb-0
+        strong#timeHours --
+        small#hoursText.text-muted
+        strong#timeMinutes --
+        small#hoursText.text-muted  min
+        small.text-muted  remaining
 
       .d-flex.flex-column.justify-content-center.text-center
         .position-relative.top-image
@@ -147,10 +150,37 @@ html(lang='en')
         setTime();
       }
 
+      function getTime(){
+        return Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc)));
+      }
+
+      function getHours()
+      {
+        let time = Math.floor(getTime());
+
+        let txt='hour'
+        if(time > 1)
+          txt='hrs'
+
+        return {value: time, text: txt}
+      }
+
+      function getMinutes()
+      {
+        return Math.round((getTime()%1)*60);
+      }
+
       function setTime(){
         if(data.scooter.isCharging){
-          $('#timeValue').html(Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc))).toFixed(1));
-          $('#timeText').removeClass('invisible');
+          let hours=getHours();
+          if(hours.value == 0){
+            hours.value='';
+            hours.text='';
+          }
+          $('#timeHours').html(hours.value+' ');
+          $('#hoursText').html(hours.text+' ');
+
+          $('#timeMinutes').html(getMinutes());
         }
         else{
           $('#timeText').addClass('invisible');
