@@ -183,6 +183,7 @@ html(lang='en')
       function setTime(){
         if(data.scooter.isCharging){
           let time=getTime();
+
           if(time.hours.value == 0){
             time.hours.value='';
             time.hours.text='';
@@ -190,14 +191,14 @@ html(lang='en')
           $('#timeHours').html(time.hours.value+' ');
           $('#hoursText').html(time.hours.text+' ');
 
-          if(time.minutes==0){
+          if(time.minutes == 0 && ! time.hours.value == 0){
             $('#minutesText').html('');
+            $('#timeMinutes').html('');
           }
           else{
             $('#minutesText').html(' min ');
-          }
-          $('#timeMinutes').html(time.minutes==0?'':time.minutes);
-            
+            $('#timeMinutes').html(time.minutes);
+          }  
         }
         else{
           $('#timeText').addClass('invisible');
