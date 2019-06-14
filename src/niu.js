@@ -11,10 +11,23 @@ module.exports = class Niu {
 	}
 
 	static computeSOC(data) {
-		let battery = [data.batteries.compartmentA.batteryCharging, data.batteries.compartmentB.batteryCharging]
+		let battery = [data.batteries.compartmentA, data.batteries.compartmentB];
+		let soc = 0;
 
-		return (battery[0] + battery[1]) / 2
+		if (battery[0].isConnected) {
+			soc += battery[0].batteryCharging
+		}
+		if (battery[1].isConnected) {
+			soc += battery[1].batteryCharging
+		}
+
+		if (battery[0].isConnected && battery[1].isConnected) {
+			return soc / 2;
+		}
+
+		return soc;
 	}
+
 
 	get() {
 		return this._data;
