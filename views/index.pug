@@ -26,6 +26,11 @@ html(lang='en')
         strong Error
         | : connection to plug failed.
         button.close(data-dismiss="alert", aria-label="Close") &times;
+      #connError.alert.alert-warning.alert-dismissible.show.fade.mt-3.d-none(role='alert')
+        strong Error
+        | : Data from scooter is more than 2 hours old. Battery SoC could be outdated
+        button.close(data-dismiss="alert", aria-label="Close") &times;
+
       h1#chargingStatus.display-4 Loading
       h2#timeText.mb-0
         strong#timeHours --
@@ -39,7 +44,7 @@ html(lang='en')
           img.img-fluid(src='/car_thumbnail_ngt.png')
           img#chargingImage.img-fluid.position-absolute.d-none(src='/examine_car_ngt_light.png')
           
-        div.d-flex.justify-content-center
+        .d-flex.justify-content-center
           h5.mx-2.my-0
             small A 
             strong#socA --
@@ -48,7 +53,7 @@ html(lang='en')
             small B 
             strong#socB --
             small  %
-        
+      
         .mb-3.mt-1.text-center
           .position-relative.shadow-lg.mb-2
             .overlay-bar
@@ -133,6 +138,7 @@ html(lang='en')
           }
 
           setPlug();
+          setConnError();
         }
       });
 
@@ -215,6 +221,18 @@ html(lang='en')
         $('#limitSlider').val(data.limit);
 
         setTime();
+      }
+
+      function setConnError(){
+        console.log(data.scooter.infoTimestamp)
+        console.log(Date.now() - 2 * 3600000)
+        if(Date.now() - 2 * 3600000 > data.scooter.infoTimestamp)
+        {
+          $('#connError').removeClass('d-none');
+        }
+        else{
+          $('#connError').addClass('d-none');
+        }
       }
 
       function setPlug(){
