@@ -150,8 +150,20 @@ html(lang='en')
       function setSOC(){
         $('#socProgress').css('width', data.scooter.soc + '%');
         $('#socValue').html(data.scooter.soc);
-        $('#socA').html(data.scooter.batteries.compartmentA.batteryCharging);
-        $('#socB').html(data.scooter.batteries.compartmentB.batteryCharging);
+
+        if(data.scooter.batteries.compartmentA.isConnected){
+          $('#socA').html(data.scooter.batteries.compartmentA.batteryCharging);
+        }
+        else{
+          $('#socA').html('--');
+        }
+
+        if(data.scooter.batteries.compartmentB.isConnected){
+          $('#socB').html(data.scooter.batteries.compartmentB.batteryCharging);
+        }
+        else{
+          $('#socB').html('--');
+        }
 
         setTime();
       }
