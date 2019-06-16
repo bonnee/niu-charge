@@ -44,6 +44,7 @@ html(lang='en')
           img.img-fluid(src='/car_thumbnail_ngt.png')
           img#chargingImage.img-fluid.position-absolute.d-none(src='/examine_car_ngt_light.png')
           
+        #partialSOC
         .d-flex.justify-content-center
           h5.mx-2.my-0
             small A 
@@ -151,6 +152,9 @@ html(lang='en')
         $('#socProgress').css('width', data.scooter.soc + '%');
         $('#socValue').html(data.scooter.soc);
 
+        if(data.scooter.batteries.compartmentB instanceof Object){
+          $('#partialSOC').show();
+
         if(data.scooter.batteries.compartmentA.isConnected){
           $('#socA').html(data.scooter.batteries.compartmentA.batteryCharging);
         }
@@ -165,6 +169,9 @@ html(lang='en')
           $('#socB').html('--');
         }
 
+        } else {
+          $('#partialSOC').hide();
+        }
         setTime();
       }
 
@@ -234,8 +241,6 @@ html(lang='en')
       }
 
       function setConnError(){
-        console.log(data.scooter.infoTimestamp)
-        console.log(Date.now() - 2 * 3600000)
         if(Date.now() - 2 * 3600000 > data.scooter.infoTimestamp)
         {
           $('#connError').removeClass('d-none');
