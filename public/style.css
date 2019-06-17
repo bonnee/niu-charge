@@ -32,7 +32,6 @@ input[type=range]::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	border: none;
 	border-right: .5rem solid white;
-	border-radius: .25rem;
 	height: 4rem;
 	width: 2%;
 	/*min-width: .4rem;*/
@@ -44,22 +43,37 @@ input[type=range]::-webkit-slider-thumb {
 input[type=range]::-moz-range-thumb {
 	-webkit-appearance: none;
 	border: none;
+	border-right: .5rem solid white;
 	height: 4rem;
-	width: .4rem;
+	width: 2%;
 	cursor: pointer;
-	border-radius: .25rem;
 	background-color: white;
 }
 
 /* All the same stuff for IE */
 input[type=range]::-ms-thumb {
 	-webkit-appearance: none;
+	border: none;
+	border-right: .5rem solid white;
 	height: 4rem;
-	width: .4rem;
+	width: 2%;
 	cursor: pointer;
 	border-radius: .25rem;
 	background-color: white;
 }
+
+input[type=range].slider-round::-webkit-slider-thumb {
+	border-radius: 0 .25rem .25rem 0;
+}
+
+input[type=range].slider-round::-moz-range-thumb {
+	border-radius: 0 .25rem .25rem 0;
+}
+
+input[type=range].slider-round::-ms-thumb {
+	border-radius: 0 .25rem .25rem 0;
+}
+
 
 .progress-bar {
 	background-image: linear-gradient(to right, #136313, #28a745);
@@ -73,12 +87,48 @@ input[type=range]::-ms-thumb {
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 51%;
-	height: 100%;
+	width: 100%;
 }
 
 .overlay-range input {
-	height: 100%;
+	position: relative;
+	margin-left: auto;
+	width: 51% !important;
+	height: 4rem;
+	box-sizing: border-box;
+}
+
+.overlay-range div {
+	position: absolute;
+	width: 2px;
+	bottom: 0;
+}
+
+.range-85,
+.range-95 {
+	height: 20%;
+}
+
+.range-80,
+.range-90 {
+	height: 30%;
+}
+
+.range-80 {
+	right: 20%
+}
+
+.range-85 {
+	right: 15%;
+}
+
+.range-90 {
+	height: 30%;
+	right: 10%
+}
+
+.range-95 {
+	right: 5%;
 }
 
 .top-image img {

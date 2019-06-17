@@ -69,12 +69,15 @@ html(lang='en')
                     h2.my-0.mx-2
                       strong#mileageValue --
                       small  Km
-            .overlay-range.p-0
-              input#limitSlider.form-control-range(type='range', min='50', max='100', value='0')
+            .overlay-range
+              div.bg-light.range-80
+              div.bg-light.range-85
+              div.bg-light.range-90
+              div.bg-light.range-95
+              input#limitSlider.form-control-range(type='range', min='50', max='100', value='0' list='ticks')
+
           
-          .display-3
-            span#limitValue --
-            small %
+          .display-4#limitValue --
           h4 Charge Limit
 
           //if data.isCharging && plugData.state!=-1
@@ -107,6 +110,7 @@ html(lang='en')
       socket.emit('ready');
 
       $('#limitSlider').on('input', function() {
+        setLimitVisual();
         socket.emit("limit", this.value);
       });
 
@@ -234,10 +238,28 @@ html(lang='en')
       }
 
       function setLimit(){
-        $('#limitValue').html(data.limit);
+        if (data.limit == 100){
+          $('#limitValue').html("Disabled");
+          
+        }
+        else{
+          $('#limitValue').html(data.limit);
+          $('#limitValue').append('<small>%</small>')
+        }
+
         $('#limitSlider').val(data.limit);
 
         setTime();
+        setLimitVisual();
+      }
+
+      function setLimitVisual(){
+        if (data.limit == 100){
+          $('#limitSlider').addClass('slider-round');
+        }
+        else{
+          $('#limitSlider').removeClass('slider-round');
+        }
       }
 
       function setConnError(){
