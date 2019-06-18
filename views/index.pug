@@ -286,7 +286,13 @@ html(lang='en')
 
             $('#plugStats').removeClass('d-none');
 
-            $('#plugKmh').html(Math.round(data.plug.power*((data.scooter.estimatedMileage*100)/data.scooter.soc)/4200));
+            if(data.scooter.soc < 100){
+              $('#plugKmh').html(Math.round(data.plug.power*((data.scooter.estimatedMileage*100)/data.scooter.soc)/4200));
+            }
+            else{
+              $('#plugKmh').html(0);
+            }
+            
             $('#plugPower').html(data.plug.power);
             $('#plugCurrent').html(data.plug.current);
 
