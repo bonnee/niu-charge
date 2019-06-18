@@ -180,7 +180,11 @@ html(lang='en')
       }
 
       function getTime(){
-        let time = Math.max(0,(data.scooter.leftTime*(data.limit-data.scooter.soc)/(100-data.scooter.soc)));
+        let time = data.scooter.leftTime;
+        
+        if(data.scooter.leftTime < 100){
+          let time = Math.max(0, (data.scooter.leftTime * (data.limit - data.scooter.soc) / (100 - data.scooter.soc)));
+        }
 
         let hours=getHours(time);
         let minutes=getMinutes(time);
