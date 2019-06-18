@@ -9,8 +9,8 @@ module.exports = class Limit {
 	async load() {
 		this._limit = await storage.get('limit');
 
-		if (!(this._limit instanceof Number)) {
-			this._limit = 90;
+		if (isNaN(this._limit)) {
+			this.set(90);
 		}
 	}
 
