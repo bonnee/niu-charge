@@ -51,7 +51,11 @@ module.exports = class Niu {
 			var post_req = https.request(post_options, res => {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
-					resolve(JSON.parse(chunk).data[0].scootorImg);
+					try {
+						resolve(JSON.parse(chunk).data[0].scootorImg);
+					} catch (e) {
+						reject(e);
+					}
 				});
 			});
 
@@ -80,10 +84,15 @@ module.exports = class Niu {
 			var post_req = https.request(post_options, res => {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
-					self._data = JSON.parse(chunk).data
-					self._data.soc = Niu.computeSOC(self._data);
+					try {
+						self._data = JSON.parse(chunk).data;
+						self._data.soc = Niu.computeSOC(self._data);
 
-					resolve(self._data);
+						resolve(self._data);
+					} catch (e) {
+						console.error('Unable to parse message.', e);
+						reject(e);
+					}
 				});
 			});
 
