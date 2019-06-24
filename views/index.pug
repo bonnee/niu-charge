@@ -181,9 +181,8 @@ html(lang='en')
 
       function getTime(){
         let time = data.scooter.leftTime;
-        
-        if(data.scooter.leftTime < 100){
-          let time = Math.max(0, (data.scooter.leftTime * (data.limit - data.scooter.soc) / (100 - data.scooter.soc)));
+        if(data.scooter.soc < 100){
+          time = Math.max(0, (data.scooter.leftTime * (data.limit - data.scooter.soc) / (100 - data.scooter.soc)));
         }
 
         let hours=getHours(time);
@@ -212,6 +211,7 @@ html(lang='en')
           $('#timeText').removeClass('invisible');
           
           let time=getTime();
+          
           let hourTxt='hour';
 
           if (time.hours > 1)
