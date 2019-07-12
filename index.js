@@ -96,8 +96,8 @@ function setChargingInterval() {
 		console.log("Checking SOC", scooter.get().soc, "%");
 
 		if (scooter.get().isCharging || plug.get().state) {
-			let l = await limit.get();
-			if (scooter.get().soc > l && l < 100) {
+			let lim = await limit.get();
+			if (scooter.get().soc >= lim && lim < 100) {
 				console.log("Stopping charge");
 				plug.set(false);
 			}

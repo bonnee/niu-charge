@@ -110,7 +110,6 @@ html(lang='en')
       socket.emit('ready');
 
       $('#limitSlider').on('input', function() {
-        setLimitVisual();
         socket.emit("limit", this.value);
       });
 
@@ -126,7 +125,7 @@ html(lang='en')
       socket.on('data',function(msg){
         if(msg.scooter instanceof Object){
           data = msg;
-          data.scooter.soc=Math.floor(data.scooter.soc);
+          data.scooter.soc = Math.round(data.scooter.soc);
 
           setSOC();
           setLimit();
