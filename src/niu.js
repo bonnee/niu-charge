@@ -1,13 +1,9 @@
 var https = require('https');
 
-module.exports = class Niu {
-	constructor({
-		sn,
-		token
-	}) {
+module.exports = class Scooter {
+	constructor(sn) {
 		this.sn = sn
-		this.token = token;
-		this._data;
+		this.data;
 	}
 
 	static computeSOC(data) {
@@ -17,10 +13,10 @@ module.exports = class Niu {
 			let battery = [data.batteries.compartmentA, data.batteries.compartmentB];
 
 			if (battery[0].isConnected) {
-				soc += battery[0].batteryCharging
+				soc += battery[0].batteryCharging;
 			}
 			if (battery[1].isConnected) {
-				soc += battery[1].batteryCharging
+				soc += battery[1].batteryCharging;
 			}
 
 			if (battery[0].isConnected && battery[1].isConnected) {
@@ -34,69 +30,7 @@ module.exports = class Niu {
 		return soc;
 	}
 
-	getImage() {
-		let self = this;
-		return new Promise((resolve, reject) => {
-			var post_options = {
-				host: 'app-api-fk.niu.com',
-				path: '/motoinfo/list',
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'token': this.token
-				}
-			};
-
-			// Set up the request
-			var post_req = https.request(post_options, res => {
-				res.setEncoding('utf8');
-				res.on('data', function (chunk) {
-					try {
-						resolve(JSON.parse(chunk).data[0].scootorImg);
-					} catch (e) {
-						reject(e);
-					}
-				});
-			});
-
-			post_req.end();
-		});
-	}
-
 	get() {
-		return this._data;
-	}
-
-	update() {
-		let self = this;
-		return new Promise((resolve, reject) => {
-			var post_options = {
-				host: 'app-api-fk.niu.com',
-				path: '/v3/motor_data/index_info?sn=' + this.sn,
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'token': this.token
-				}
-			};
-
-			// Set up the request
-			var post_req = https.request(post_options, res => {
-				res.setEncoding('utf8');
-				res.on('data', function (chunk) {
-					try {
-						self._data = JSON.parse(chunk).data;
-						self._data.soc = Niu.computeSOC(self._data);
-
-						resolve(self._data);
-					} catch (e) {
-						console.error('Unable to parse message.', e);
-						reject(e);
-					}
-				});
-			});
-
-			post_req.end();
-		});
+		return this.data;
 	}
 }

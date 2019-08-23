@@ -2,8 +2,11 @@
 const bodyParser = require('body-parser');
 const config = require('config');
 const express = require('express');
+const fs = require('fs');
 
-const Scooter = require('./src/niu');
+const TOKEN_NAME = 'config/token';
+
+const Account = require('./src/account.js');
 const Plug = require('./src/plug');
 const Limit = require('./src/limit');
 
@@ -16,13 +19,27 @@ var interval = {
 	id: 0
 };
 
-var scooter = new Scooter(config.get('scooter'));
+var account;
+if (fs.existsSync(TOKEN_NAME)) {
+	let token = fs.readFileSync(TOKEN_NAME);
+	if (token != '') {
+		account = new Account({
+			serial: config.get('scooter'),
+			token: token.toString()
+		});
+		account.updateScooter();
+	}
+} else {
+	account = new Account({
+		serial: config.get('scooter')
+	});
+}
+
 var plug = new Plug(config.get('plug'));
 var limit = new Limit();
 limit.load();
 
 plug.connect();
-scooter.update();
 
 plug.on('connected', async () => {
 	plug.update().then(data => {
@@ -58,24 +75,24 @@ io.on('connection', function (socket) {
 function sendData() {
 	io.emit('data', {
 		limit: limit.get(),
-		scooter: scooter.get(),
+		scooter: account.getScooter(),
 		plug: plug.get()
 	});
 }
 
 setChargingInterval();
 
-// Update every 5 minutes until the charge begins
+// Update every 30 minutes until the charge begins
 function setIdleInterval() {
 	console.log('Setting IDLE interval');
 
 	clearInterval(interval.id);
 	interval.state = 0;
 	interval.id = setInterval(async () => {
-		await scooter.update();
+		await account.updateScooter();
 		sendData();
 
-		if (scooter.get().isCharging) {
+		if (account.getScooter().isCharging) {
 			console.log("NIU is charging, decreasing interval");
 
 			setChargingInterval();
@@ -90,14 +107,16 @@ function setChargingInterval() {
 	clearInterval(interval.id);
 	interval.state = 1;
 	interval.id = setInterval(async () => {
-		await scooter.update();
+		await account.updateScooter();
 		sendData();
 
-		console.log("Checking SOC", scooter.get().soc, "%");
+		console.log("Checking SOC", account.getScooter().soc, "%");
 
-		if (scooter.get().isCharging || plug.get().state) {
+		if (account.getScooter().isCharging || plug.get().state) {
+
 			let lim = await limit.get();
-			if (scooter.get().soc >= lim && lim < 100) {
+			if (account.getScooter().soc >= lim && lim < 100) {
+
 				console.log("Stopping charge");
 				plug.set(false);
 			}
@@ -116,7 +135,38 @@ app.use(bodyParser.urlencoded({
 app.set('view engine', 'pug');
 
 app.get('/', function (req, res) {
-	res.render('index');
+	if (account.isLogged()) {
+		res.render('index');
+	} else {
+		res.redirect('/login');
+	}
+});
+
+app.get('/login', (req, res) => {
+	if (account.isLogged()) {
+		res.redirect('/');
+	} else {
+		res.render('login');
+	}
+});
+
+app.post('/login', (req, res) => {
+	account.login(req.body.username, req.body.password).then(token => {
+		console.log("User logged in!")
+
+		require('fs').writeFile(TOKEN_NAME, token, () => {});
+
+		account = new Account({
+			serial: config.get('scooter'),
+			token: token
+		});
+		account.updateScooter().then(() => {
+			res.redirect('/');
+		});
+
+	}).catch(e => {
+		res.send("error: " + e);
+	});
 });
 
 app.post('/charging', (req, res) => {
@@ -130,13 +180,6 @@ app.post('/charging', (req, res) => {
 		res.statusCode = 500;
 		res.send();
 	})
-});
-
-app.post('/setlimit', (req, res) => {
-	limit.set(req.body.value);
-
-	res.statusCode = 200;
-	res.send();
 });
 
 http.listen(process.env.PORT || 3000, () => {
