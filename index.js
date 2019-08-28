@@ -9,6 +9,7 @@ const TOKEN_NAME = 'config/token';
 const Account = require('./src/account.js');
 const Plug = require('./src/plug');
 const Limit = require('./src/limit');
+const History = require('./src/history');
 
 var app = express();
 var http = require('http').Server(app);
@@ -35,6 +36,7 @@ if (fs.existsSync(TOKEN_NAME)) {
 	});
 }
 
+var history = new History();
 var plug = new Plug(config.get('plug'));
 var limit = new Limit();
 limit.load();
@@ -49,6 +51,7 @@ plug.on('connected', async () => {
 
 plug.on('data', data => {
 	if (!interval.state && data.state) {
+		history.start(account.getScooter().soc, plug.get().power);
 		setChargingInterval();
 	}
 
@@ -95,6 +98,8 @@ function setIdleInterval() {
 		if (account.getScooter().isCharging) {
 			console.log("NIU is charging, decreasing interval");
 
+			history.start(account.getScooter().soc, plug.get().power);
+
 			setChargingInterval();
 		}
 
@@ -113,6 +118,12 @@ function setChargingInterval() {
 		console.log("Checking SOC", account.getScooter().soc, "%");
 
 		if (account.getScooter().isCharging || plug.get().state) {
+
+			if (history.get().length == 0) {
+				history.start(account.getScooter().soc, plug.get().power);
+			} else {
+				history.update(account.getScooter().soc, plug.get().power);
+			}
 
 			let lim = await limit.get();
 			if (account.getScooter().soc > lim && lim < 100) {

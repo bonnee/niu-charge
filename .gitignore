@@ -90,3 +90,4 @@ typings/
 .node-persist/
 default.json
 token
+history.json
