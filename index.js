@@ -51,7 +51,6 @@ plug.on('connected', async () => {
 
 plug.on('data', data => {
 	if (!interval.state && data.state) {
-		history.start(account.getScooter().soc, plug.get().power);
 		setChargingInterval();
 	}
 
