@@ -12,8 +12,6 @@ module.exports = class History {
 	}
 
 	start(soc, power) {
-		console.log('start logging');
-
 		db.get('data').push({
 			date: new Date(),
 			curve: []

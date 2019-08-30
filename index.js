@@ -117,19 +117,20 @@ function setChargingInterval() {
 
 		console.log("Checking SOC", account.getScooter().soc, "%");
 
-		if (account.getScooter().isCharging || plug.get().state) {
+		if (account.getScooter().isCharging) {
+			if (plug.get().state) {
+				if (history.get().length == 0) {
+					history.start(account.getScooter().soc, plug.get().power);
+				} else {
+					history.update(account.getScooter().soc, plug.get().power);
+				}
 
-			if (history.get().length == 0) {
-				history.start(account.getScooter().soc, plug.get().power);
-			} else {
-				history.update(account.getScooter().soc, plug.get().power);
-			}
+				let lim = await limit.get();
+				if (account.getScooter().soc > lim && lim < 100) {
 
-			let lim = await limit.get();
-			if (account.getScooter().soc > lim && lim < 100) {
-
-				console.log("Stopping charge");
-				plug.set(false);
+					console.log("Stopping charge");
+					plug.set(false);
+				}
 			}
 		} else {
 			setIdleInterval();
@@ -138,6 +139,14 @@ function setChargingInterval() {
 	}, 30000); //30sec
 };
 
+function checkLogged(req, res, next) {
+	if (account.isLogged()) {
+		next();
+	} else {
+		res.redirect('/login');
+	}
+}
+
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({
 	extended: true
@@ -145,12 +154,8 @@ app.use(bodyParser.urlencoded({
 
 app.set('view engine', 'pug');
 
-app.get('/', function (req, res) {
-	if (account.isLogged()) {
-		res.render('index');
-	} else {
-		res.redirect('/login');
-	}
+app.get('/', checkLogged, (req, res) => {
+	res.render('index');
 });
 
 app.get('/login', (req, res) => {
@@ -159,6 +164,14 @@ app.get('/login', (req, res) => {
 	} else {
 		res.render('login');
 	}
+});
+
+app.get('/history', checkLogged, (req, res) => {
+	let hist = history.get();
+
+	res.render('history', {
+		data: hist[hist.length - 1]
+	});
 });
 
 app.post('/login', (req, res) => {
