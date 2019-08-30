@@ -123,10 +123,10 @@ html(lang='en')
 					}
 				});
 
-				setInterval(()=>{
+				function update(data) {
 					myChart.data.labels.push(new Date().toISOString());
 
-					myChart.data.datasets[0].data.push(70);
-					myChart.data.datasets[1].data.push(420);
+					myChart.data.datasets[0].data.push(data.soc);
+					myChart.data.datasets[1].data.push(data.power);
 					myChart.update();
-				}, 5000)
+				}
