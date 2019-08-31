@@ -51,7 +51,9 @@ plug.on('connected', async () => {
 
 plug.on('data', data => {
 	if (!interval.state && data.state) {
+
 		setChargingInterval();
+		history.start(account.getScooter().soc, plug.get().power);
 	}
 
 	io.emit('plug', data);
@@ -97,9 +99,8 @@ function setIdleInterval() {
 		if (account.getScooter().isCharging) {
 			console.log("NIU is charging, decreasing interval");
 
-			history.start(account.getScooter().soc, plug.get().power);
-
 			setChargingInterval();
+			history.start(account.getScooter().soc, plug.get().power);
 		}
 
 	}, 300000); //30min
@@ -108,16 +109,18 @@ function setIdleInterval() {
 function setChargingInterval() {
 	console.log('Setting CHARGING interval');
 
+	await account.updateScooter();
+	sendData();
+
 	clearInterval(interval.id);
 	interval.state = 1;
 	interval.id = setInterval(async () => {
-		await account.updateScooter();
-		sendData();
 
 		console.log("Checking SOC", account.getScooter().soc, "%");
 
-		if (account.getScooter().isCharging) {
-			if (plug.get().state) {
+		if (plug.get().state) {
+			if (account.getScooter().isCharging) {
+
 				if (history.get().length == 0) {
 					history.start(account.getScooter().soc, plug.get().power);
 				} else {
