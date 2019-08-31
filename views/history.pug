@@ -123,10 +123,27 @@ html(lang='en')
 					}
 				});
 
+				socket.emit('ready');
+
+				socket.on('reconnect', function () {
+					socket.emit('ready');
+				});
+
+				let kek=false;
+				socket.on('data', (msg)=>{
+					if(kek && msg.scooter instanceof Object) {
+						update({
+								soc:msg.scooter.soc,
+								power:msg.plug.power
+						});
+					}
+					kek=true;
+				})
+
 				function update(data) {
 					myChart.data.labels.push(new Date().toISOString());
 
 					myChart.data.datasets[0].data.push(data.soc);
 					myChart.data.datasets[1].data.push(data.power);
-					myChart.update();
+					myChart.update({duration: 500, easing:'linear'});
 				}

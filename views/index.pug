@@ -121,7 +121,7 @@ html(lang='en')
         setLimit();
       });
 
-      socket.on('data',function(msg){
+      socket.on('data', function(msg){
         if(msg.scooter instanceof Object){
           data = msg;
           data.scooter.soc = Math.floor(data.scooter.soc);

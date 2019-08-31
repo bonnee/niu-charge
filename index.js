@@ -135,7 +135,7 @@ function setChargingInterval() {
 			setIdleInterval();
 		}
 
-	}).bind(first), 30000); //30sec
+	}).bind(first), 10000); //30sec
 };
 
 function checkLogged(req, res, next) {
