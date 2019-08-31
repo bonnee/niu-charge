@@ -53,7 +53,6 @@ plug.on('data', data => {
 	if (!interval.state && data.state) {
 
 		setChargingInterval();
-		history.start(account.getScooter().soc, plug.get().power);
 	}
 
 	io.emit('plug', data);
@@ -100,7 +99,6 @@ function setIdleInterval() {
 			console.log("NIU is charging, decreasing interval");
 
 			setChargingInterval();
-			history.start(account.getScooter().soc, plug.get().power);
 		}
 
 	}, 300000); //30min
@@ -109,36 +107,35 @@ function setIdleInterval() {
 function setChargingInterval() {
 	console.log('Setting CHARGING interval');
 
-	await account.updateScooter();
-	sendData();
-
 	clearInterval(interval.id);
 	interval.state = 1;
-	interval.id = setInterval(async () => {
+	let first = true;
+	interval.id = setInterval((async () => {
 
-		console.log("Checking SOC", account.getScooter().soc, "%");
+		await account.updateScooter();
+		sendData();
+
+		console.log("Checking SOC", account.getScooter().soc, "%", first);
 
 		if (plug.get().state) {
-			if (account.getScooter().isCharging) {
-
-				if (history.get().length == 0) {
-					history.start(account.getScooter().soc, plug.get().power);
-				} else {
-					history.update(account.getScooter().soc, plug.get().power);
-				}
-
-				let lim = await limit.get();
-				if (account.getScooter().soc > lim && lim < 100) {
-
-					console.log("Stopping charge");
-					plug.set(false);
-				}
+			if (first || history.get().length == 0) {
+				first = false;
+				history.start(account.getScooter().soc, plug.get().power);
+			} else {
+				history.update(account.getScooter().soc, plug.get().power);
 			}
-		} else {
+
+			let lim = await limit.get();
+			if (account.getScooter().soc > lim && lim < 100) {
+
+				console.log("Stopping charge");
+				plug.set(false);
+			}
+		} else if (!account.getScooter().isCharging) {
 			setIdleInterval();
 		}
 
-	}, 30000); //30sec
+	}).bind(first), 30000); //30sec
 };
 
 function checkLogged(req, res, next) {
