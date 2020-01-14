@@ -131,14 +131,14 @@ html(lang='en')
 
 				let kek=false;
 				socket.on('data', (msg)=>{
-					if(kek && msg.scooter instanceof Object) {
+					if(kek && msg.scooter instanceof Object && msg.scooter.isCharging) {
 						update({
 								soc:msg.scooter.soc,
 								power:msg.plug.power
 						});
 					}
 					kek=true;
-				})
+				});
 
 				function update(data) {
 					myChart.data.labels.push(new Date().toISOString());

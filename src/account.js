@@ -94,12 +94,20 @@ module.exports = class Account {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
 					try {
-						self.scooter.data = JSON.parse(chunk).data;
-						self.scooter.data.soc = Scooter.computeSOC(self.scooter.data);
+						let data = JSON.parse(chunk)
+						self.scooter.data = data.data;
 
-						resolve(self.getScooter());
+						if (self.scooter.data == "") {
+							if (data.status == 1131) {
+								self.logged = false;
+							}
+							reject(data.trace);
+						} else {
+							self.scooter.data.soc = Scooter.computeSOC(self.scooter.data);
+							resolve(self.getScooter());
+						}
 					} catch (e) {
-						console.error('Unable to parse message.', e);
+						console.error('Unable to parse message:', e);
 						reject(e);
 					}
 				});
