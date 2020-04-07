@@ -9,7 +9,12 @@ input[type=range] {
 
 input[type=range]:focus {
 	outline: none;
-	/* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+	/* Removes the blue border. */
+}
+
+/* Removes the dotted outline from firefox */
+input[type=range]::-moz-focus-outer {
+    border: 0;
 }
 
 input[type=range]::-ms-track {
@@ -22,41 +27,47 @@ input[type=range]::-ms-track {
 	color: transparent;
 }
 
+input[type=range]::-moz-range-track {
+	width: 100%;
+	cursor: pointer;
+
+	/* Hides the slider so custom styles can be added */
+	background: transparent;
+	border-color: transparent;
+	color: transparent;
+}
 
 /* Special styling for WebKit/Blink */
 input[type=range]::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	border: none;
-	border-right: .5rem solid white;
 	border-radius: 0;
+	background: white;
 	height: 4rem;
 	width: 2%;
 	cursor: pointer;
-	background-color: transparent;
 }
 
 /* All the same stuff for Firefox */
 input[type=range]::-moz-range-thumb {
 	-webkit-appearance: none;
 	border: none;
-	border-right: .5rem solid white;
 	border-radius: 0;
+	background: white;
 	height: 4rem;
 	width: 2%;
 	cursor: pointer;
-	background-color: transparent;
 }
 
 /* All the same stuff for IE */
 input[type=range]::-ms-thumb {
 	-webkit-appearance: none;
 	border: none;
-	border-right: .5rem solid white;
 	border-radius: 0;
+	background: white;
 	height: 4rem;
 	width: 2%;
 	cursor: pointer;
-	background-color: transparent;
 }
 
 input[type=range].slider-round::-webkit-slider-thumb {
