@@ -121,6 +121,7 @@ function setChargingInterval() {
 			if (first || history.get().length == 0) {
 				first = false;
 				history.start(account.getScooter().soc, plug.get().power);
+				io.emit("start", true);
 			} else {
 				history.update(account.getScooter().soc, plug.get().power);
 			}
@@ -135,7 +136,7 @@ function setChargingInterval() {
 			setIdleInterval();
 		}
 
-	}).bind(first), 10000); //30sec
+	}).bind(first), 10000);
 };
 
 function checkLogged(req, res, next) {
@@ -154,7 +155,9 @@ app.use(bodyParser.urlencoded({
 app.set('view engine', 'pug');
 
 app.get('/', checkLogged, (req, res) => {
-	res.render('index');
+	let hist = history.get();
+
+	res.render('index', { data: hist[hist.length - 1] });
 });
 
 app.get('/login', (req, res) => {
@@ -177,7 +180,7 @@ app.post('/login', (req, res) => {
 	account.login(req.body.username, req.body.password).then(token => {
 		console.log("User logged in!")
 
-		require('fs').writeFile(TOKEN_NAME, token, () => {});
+		require('fs').writeFile(TOKEN_NAME, token, () => { });
 
 		account = new Account({
 			serial: config.get('scooter'),

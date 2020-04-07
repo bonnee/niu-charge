@@ -7,143 +7,142 @@ each val, i in data.curve
 	-	soc.push(val.soc);
 	-	power.push(val.power);
 
-html(lang='en')
-	head
-		// Required meta tags
-		meta(charset='utf-8')
-		meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
-		meta(name="theme-color" content="#343a40")
+canvas#myChart
 
-		link(rel='icon', href='/favicon.ico')
-		link(rel="manifest", href="/manifest.json")
-
-		// Bootstrap CSS
-		link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T', crossorigin='anonymous')
-
-		//link(rel='stylesheet' href='/history.css')
-
-		script(src="/socket.io/socket.io.js")
-		script.
-			var socket=io();
-
-		title NIU History
-		
-	body.bg-dark.text-light.pt-2
-		main.container
-			h1 Last charge history
-
-			div.position-relative.w-100.h-40
-				canvas#myChart
-
-		script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js')
-		script.
-			var ctx = document.getElementById('myChart').getContext('2d');
-			var myChart = new Chart(ctx, {
-				type: 'line',
-				data: {
-						labels: !{JSON.stringify(date)},
-						datasets: [{
-								label: 'SoC [%]',
-								borderColor: "green",
-								backgroundColor: "rgba(0, 128, 0, 0.2)",
-								pointRadius: 0,
-								cubicInterpolationMode: 'monotone',
-								yAxisID: 'soc',
-								data: !{JSON.stringify(soc)}
-						},
-						{
-							label:'Power [W]',
-							borderColor: "rgb(255, 0, 0)",
-							backgroundColor: "rgba(255, 0, 0, 0.2)",
-							pointRadius: 0,
-							cubicInterpolationMode: 'monotone',
-							yAxisID: 'pow',
-							data: !{JSON.stringify(power)}
-						}]
+script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js')
+script.
+	var ctx = document.getElementById('myChart').getContext('2d');
+	var myChart = new Chart(ctx, {
+		type: 'line',
+		data: {
+				labels: !{JSON.stringify(date)},
+				datasets: [{
+						label: 'SoC [%]',
+						borderColor: "green",
+						backgroundColor: "rgba(0, 128, 0, 0.2)",
+						pointRadius: 0,
+						cubicInterpolationMode: 'monotone',
+						yAxisID: 'soc',
+						data: !{JSON.stringify(soc)}
 				},
-				options: {
-						borderWidth: 2,
-						legend: {
-							position: 'top',
-							labels: {
-								fontColor: 'white'
+				{
+					label:'Power [W]',
+					borderColor: "rgb(255, 0, 0)",
+					backgroundColor: "rgba(255, 0, 0, 0.2)",
+					pointRadius: 0,
+					cubicInterpolationMode: 'monotone',
+					yAxisID: 'pow',
+					data: !{JSON.stringify(power)}
+				}]
+		},
+		options: {
+				aspectRatio: 1.78,
+				responsive: true,
+				maintainAspectRatio: true,
+				borderWidth: 2,
+				legend: {
+					position: 'top',
+					labels: {
+						fontColor: 'white'
+					}
+				},
+				scales: {
+					xAxes: [{
+						type: 'time',
+						fontColor: 'white',
+						time: {
+							unit:'minute',
+							tooltipFormat: 'MMM D, LT'
+						},
+						ticks: {
+							fontColor: 'white',
+						},
+						gridLines: {
+							color: 'grey'
+						}
+					}],
+					yAxes: [{
+						id:'soc',
+						type:'linear',
+						position:'left',
+						ticks:{
+							min: 0,
+							max: 100,
+							fontColor: 'white',
+							callback: function(value, index, values) {
+								return value + '%';
 							}
 						},
-						scales: {
-							xAxes: [{
-								type: 'time',
-								fontColor: 'white',
-								time: {
-									unit:'minute',
-									tooltipFormat: 'MMM D, LT'
-								},
-								ticks: {
-									fontColor: 'white',
-								},
-								gridLines: {
-									color: 'grey'
-								}
-							}],
-							yAxes: [{
-								id:'soc',
-								type:'linear',
-								position:'left',
-								ticks:{
-									min: 0,
-									max: 100,
-									fontColor: 'white',
-									callback: function(value, index, values) {
-										return value + '%';
-									}
-								},
-								gridLines: {
-									color: 'grey'
-								}
-							},
-							{
-								id:'pow',
-								type: 'linear',
-								position: 'right',
-								ticks: {
-									min: 0,
-									max: 1000,
-									fontColor: 'white',
-									callback: function(value, index, values) {
-										return value + 'W';
-									}
-								},
-								gridLines: {
-									color: 'grey'
-								}
-							}]
-						},
-						tooltips:{
-							intersect: false
+						gridLines: {
+							color: 'grey'
 						}
-					}
-				});
-
-				socket.emit('ready');
-
-				socket.on('reconnect', function () {
-					socket.emit('ready');
-				});
-
-				let kek=false;
-				socket.on('data', (msg)=>{
-					if(kek && msg.scooter instanceof Object && msg.scooter.isCharging) {
-						update({
-								soc:msg.scooter.soc,
-								power:msg.plug.power
-						});
-					}
-					kek=true;
-				});
-
-				function update(data) {
-					myChart.data.labels.push(new Date().toISOString());
-
-					myChart.data.datasets[0].data.push(data.soc);
-					myChart.data.datasets[1].data.push(data.power);
-					myChart.update({duration: 500, easing:'linear'});
+					},
+					{
+						id:'pow',
+						type: 'linear',
+						position: 'right',
+						ticks: {
+							min: 0,
+							max: 1000,
+							fontColor: 'white',
+							callback: function(value, index, values) {
+								return value + 'W';
+							}
+						},
+						gridLines: {
+							color: 'grey'
+						}
+					}]
+				},
+				tooltips:{
+					intersect: false
 				}
+			}
+		});
+
+	socket.emit('ready');
+
+	socket.on('reconnect', function () {
+		socket.emit('ready');
+	});
+
+	let first_ignore=true;
+	socket.on('data', (msg)=>{
+		if(first_ignore && msg.scooter instanceof Object && msg.scooter.isCharging) {
+			historyUpdate({
+					soc:msg.scooter.soc,
+					power:msg.plug.power
+			});
+		}
+		//first_ignore=true;
+	});
+
+	socket.on('start',()=>{
+		console.log("Staring new charging session");
+		historyClear();
+	})
+
+	function historyClear(){
+		myChart.data.datasets[0].data=[];
+		myChart.data.datasets[1].data=[];
+		myChart.data.labels=[];
+
+		myChart.update();
+	}
+
+	function historyUpdate(data) {
+		myChart.data.labels.push(new Date().toISOString());
+
+		myChart.data.datasets[0].data.push(data.soc);
+		myChart.data.datasets[1].data.push(data.power);
+		myChart.update({duration: 500, easing:'linear'});
+	}
+
+	function beforePrint() {
+		for (var id in Chart.instances) {
+			Chart.instances[id].resize();
+		}
+	}
+
+	window.addEventListener("beforeprint", beforePrint);
+	window.onbeforeprint = beforePrint;
