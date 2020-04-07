@@ -118,20 +118,21 @@ function setChargingInterval() {
 		console.log("Checking SOC", account.getScooter().soc, "%", first);
 
 		if (plug.get().state) {
-			if (first || history.get().length == 0) {
-				first = false;
-				history.start(account.getScooter().soc, plug.get().power);
-				io.emit("start", true);
-			} else {
-				history.update(account.getScooter().soc, plug.get().power);
-			}
-
 			let lim = await limit.get();
 			if (account.getScooter().soc > lim && lim < 100) {
 
 				console.log("Stopping charge");
 				plug.set(false);
+			} else {
+				if (first || history.get().length == 0) {
+					first = false;
+					history.start(account.getScooter().soc, plug.get().power);
+					io.emit("start", true);
+				} else {
+					history.update(account.getScooter().soc, plug.get().power);
+				}
 			}
+
 		} else if (!account.getScooter().isCharging) {
 			setIdleInterval();
 		}
