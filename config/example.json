@@ -3,8 +3,6 @@
 		"id": "xxxxxxxxxxxxxxxxxxxx",
 		"key": "xxxxxxxxxxxxxxxx"
 	},
-	"scooter": {
-		"sn": "M1P0000R0000000",
-		"token": "tokenExperienceMode"
-	}
+	"scooter": "M1P0000R0000000",
+	"lang": "en-US"
 }
