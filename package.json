@@ -4,12 +4,13 @@
   "description": "Charging manager for NIU electric mopeds",
   "main": "niucharge.js",
   "dependencies": {
-    "config": "^3.1.0",
-    "express": "^4.17.0",
+    "config": "^3.3.1",
+    "csv-writer": "^1.6.0",
+    "express": "^4.17.1",
     "lowdb": "^1.0.0",
-    "node-persist": "^3.0.4",
-    "pug": "^2.0.3",
-    "socket.io": "^2.2.0",
+    "node-persist": "^3.1.0",
+    "pug": "^2.0.4",
+    "socket.io": "^2.3.0",
     "tuyapi": "^4.0.4"
   },
   "devDependencies": {},
